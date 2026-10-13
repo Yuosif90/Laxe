@@ -1,0 +1,520 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>نامەیێن گەهاندنێ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column, message editor on top, a ledger-style list of orders below, one WhatsApp action per row. */
+:root {
+  --bg: #f3f5f2;
+  --surface: #ffffff;
+  --fg: #16231c;
+  --muted: #5d6b63;
+  --line: #d9e0da;
+  --accent: #0b6b4a;
+  --accent-fg: #ffffff;
+  --done-bg: #e7f1ea;
+  --done-fg: #3c6b52;
+  --font-display: "Noto Naskh Arabic", "Geeza Pro", "Noto Sans Arabic", serif;
+  --font-body: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1713; --surface: #17211b; --fg: #e6efe9; --muted: #98a89f;
+    --line: #2a3830; --accent: #3fc08c; --accent-fg: #07130d;
+    --done-bg: #1b2c23; --done-fg: #8fd1b2; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1713; --surface: #17211b; --fg: #e6efe9; --muted: #98a89f;
+  --line: #2a3830; --accent: #3fc08c; --accent-fg: #07130d;
+  --done-bg: #1b2c23; --done-fg: #8fd1b2; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-inline: 16px; padding-block: 20px 48px;
+}
+.wrap { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 20px; }
+h1 { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.25; margin: 0; text-wrap: balance; }
+.meta { color: var(--muted); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+.meta b { color: var(--fg); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+
+.editor { display: flex; flex-direction: column; gap: 8px; }
+.editor label { font-weight: 600; font-size: 0.95rem; }
+.editor textarea {
+  width: 100%; min-height: 8.5rem; resize: vertical;
+  font: inherit; line-height: 1.7; color: var(--fg);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 6px;
+  padding: 12px 14px;
+}
+.editor textarea:focus-visible, a:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.hint { color: var(--muted); font-size: 0.85rem; margin: 0; }
+
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab {
+  font: inherit; font-size: 0.9rem; min-height: 44px; padding-inline: 12px; background: none; border: 0;
+  border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer;
+}
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+.pane { display: flex; flex-direction: column; gap: 8px; padding-block: 8px; }
+.tool:disabled { opacity: 0.5; cursor: progress; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool {
+  min-height: 44px; padding-inline: 14px; border-radius: 6px; font: inherit; font-size: 0.9rem;
+  background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
+}
+.tool.main { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+.bar { display: flex; flex-direction: column; gap: 8px; }
+.bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.bar-top strong { font-size: 1rem; }
+.bar-top button {
+  font: inherit; font-size: 0.85rem; color: var(--muted); background: none;
+  border: 0; padding: 4px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
+}
+.track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width 0.25s ease; }
+
+.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.row {
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 4px 12px; align-items: center;
+  padding-block: 14px; border-bottom: 1px solid var(--line);
+}
+.row .n { color: var(--muted); font-size: 0.85rem; text-align: center; }
+.info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.phone { font-family: var(--font-mono); font-size: 1.05rem; direction: ltr; text-align: right; unicode-bidi: plaintext; letter-spacing: 0.02em; }
+.sub { color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0 12px; }
+.sub span { direction: ltr; unicode-bidi: plaintext; overflow-wrap: anywhere; }
+.actions { display: flex; gap: 8px; align-items: center; }
+.wa {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 7.5rem;
+  padding-inline: 16px; border-radius: 6px; background: var(--accent); color: var(--accent-fg);
+  font-weight: 600; font-size: 0.95rem; text-decoration: none;
+}
+.wa:hover { filter: brightness(1.08); }
+.copy {
+  min-height: 44px; padding-inline: 12px; border-radius: 6px; font: inherit; font-size: 0.85rem;
+  background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
+}
+.row.opened { background: var(--done-bg); }
+.row.opened .wa { background: transparent; color: var(--done-fg); border: 1px solid var(--done-fg); }
+.row.opened .n { color: var(--done-fg); }
+
+@media (max-width: 480px) {
+  .row { grid-template-columns: 1.6rem minmax(0, 1fr); }
+  .actions { grid-column: 1 / -1; padding-inline-start: calc(1.6rem + 12px); }
+  .wa { flex: 1; }
+  h1 { font-size: 1.6rem; }
+}
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+</style>
+
+<main class="wrap" dir="rtl" lang="ckb">
+  <header>
+    <h1>نامەیێن گەهاندنێ ب وەتسئاپێ</h1>
+    <p class="meta" id="listinfo"></p>
+  </header>
+
+  <section class="editor">
+    <strong>ژمارەیان زێدە بکە</strong>
+    <div class="tabs" role="tablist" aria-label="ڕێکێن زێدەکرنێ">
+      <button type="button" class="tab" role="tab" id="tab-photo" data-pane="pane-photo" aria-selected="true">١. وێنە</button>
+      <button type="button" class="tab" role="tab" id="tab-pdf" data-pane="pane-pdf" aria-selected="false">٢. PDF</button>
+      <button type="button" class="tab" role="tab" id="tab-text" data-pane="pane-text" aria-selected="false">٣. ب دەستی</button>
+    </div>
+    <div class="pane" id="pane-photo" role="tabpanel" aria-labelledby="tab-photo">
+      <div class="tools">
+        <button type="button" class="tool main src" id="btnCam">وێنەی وەرەقێ بگرە</button>
+        <button type="button" class="tool src" id="btnGal">ژ گالەریێ هلبژێرە</button>
+      </div>
+      <p class="hint">وێنەکێ ڕوون ژ وەرەقێ بگرە. Claude ژمارەیان دخوینیت و دکەتە ناڤ ڤەکرنا خوارێ، دا تو بەراورد بکەی.</p>
+      <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
+      <input type="file" id="fGal" accept="image/*" multiple hidden>
+    </div>
+    <div class="pane" id="pane-pdf" role="tabpanel" aria-labelledby="tab-pdf" hidden>
+      <div class="tools">
+        <button type="button" class="tool main src" id="btnPdf">فایلەکێ PDF بلند بکە</button>
+      </div>
+      <p class="hint">ڕاپۆرتا فاتورەیان یان هەر PDFەکا ژمارەیێن تێدا. ئەگەر PDF وێنە بیت (سکانکری)، Claude ژ وێنەی دخوینیت.</p>
+      <input type="file" id="fPdf" accept="application/pdf,.pdf" hidden>
+    </div>
+    <div class="pane" id="pane-text" role="tabpanel" aria-labelledby="tab-text" hidden>
+      <p class="hint">هەر ژمارەکێ ل سەر ڕیزەکێ بنڤیسە، یان کۆپی بکە و ل خوارێ دانە ناڤ ڤەکرنێ.</p>
+    </div>
+    <p class="hint" id="photoNote" hidden>خواندنا وێنەی ل ڤێ دیمەنێ بەردەست نینە. ڕێکا ٣ بکاربینە.</p>
+    <label for="paste">ژمارەیێن دیتی (پێش زێدەکرنێ بەراورد بکە و ڕاست بکە)</label>
+    <textarea id="paste" dir="ltr" placeholder="07508989581&#10;07514904703 Baroshke&#10;0750 421 7269"></textarea>
+    <p class="hint">ژمارە ب ٠٧٥٠ یان +٩٦٤ یان ٩٦٤ ژی دهێنە خواندن. ئەگەر پشتی ژمارێ ناڤ یان ناڤنیشان هەبیت، دێ ل بن ژمارێ دیار بیت. ئەنجامێ وێنەی و PDF ژی ل ڤێرێ دهێت، پێش زێدەکرنێ ڕاستی بکە.</p>
+    <div class="tools">
+      <button type="button" class="tool main" id="make">لیستەکا نو</button>
+      <button type="button" class="tool" id="append">زێدەکرن بو لیستێ</button>
+      <button type="button" class="tool" id="restore">لیستا ١٣-١٠ بینە ڤە</button>
+    </div>
+    <p class="hint" id="pasteMsg" aria-live="polite"></p>
+  </section>
+
+  <section class="editor">
+    <label for="msg">نامەیا دێ هێتە فرێکرن</label>
+    <textarea id="msg"></textarea>
+    <p class="hint">ئەگەر تە ناما خو گوهۆڕی، دوگمەیێن وەتسئاپێ ل خوارێ ب خۆ دهێنە نویکرن.</p>
+  </section>
+
+  <section class="bar" aria-live="polite">
+    <div class="bar-top">
+      <strong>ڤەکری: <span class="num" id="count">٠</span> ژ <span class="num" id="total">٣٤</span></strong>
+      <button type="button" id="reset">ڤالاکرنا نیشانان</button>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+    <p class="hint">دوگمەیا وەتسئاپێ ل ناڤ وەتسئاپێ نامەیێ ئامادە دکەت. تە ب خۆ دڤێت لەزکرنێ (Send) بکەی. ڕیز "ڤەکری" دهێتە نیشانکرن ب کلیکا ل سەر دوگمەیێ، نە ب فرێکرنا نامەیێ.</p>
+  </section>
+
+  <ol class="list" id="list"></ol>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+var DEFAULT_MSG = "سلاڤ، تەلەبیەکا تە هەیە ژ دەڤ کۆمپانیا مە. هیڤی دکەین تەلەفۆنا خو ل نک خو هەبیت، ل ماوێ چەند خولەکەکێ دا تەلەبیا تە دێ گەهیتە تە.";
+
+// [invoice, phone, address, total]
+var DEFAULT_ORDERS = [
+  [35290,"07508989581","Baroshke",30000],
+  [35300,"07514904703","baroshke",21000],
+  [35305,"07504217269","baroshke",25000],
+  [35311,"07504819715","Nezik Xasta Azadi",21000],
+  [35353,"07505054320","Baroshke",21000],
+  [35370,"07507755382","Baroshke",12000],
+  [35380,"07514600610","7ayshrta- mosa gizi",25000],
+  [35383,"07515490209","Hai Shrta bni",30000],
+  [35384,"07507883160","Hai Shrta Bni",25000],
+  [35389,"07511070755","sarhildan tower",25000],
+  [35409,"07518013287","hayl gzma",30000],
+  [35438,"07503710197","Eminke",33000],
+  [35439,"07507351180","Besre",39000],
+  [35465,"07508580485","barushke",55000],
+  [35471,"07507289868","bn nadi duhok",27000],
+  [35489,"07503652123","7ayshrta bni",18000],
+  [35497,"07503340530","Hai Shrta Sari",55000],
+  [35499,"07501331141","m7ala shele",21000],
+  [35502,"07504315424","barushke",21000],
+  [35511,"07504124793","duhok-m7ala shele",25000],
+  [35522,"07507120814","BARUSHKE",21000],
+  [35525,"07507202130","besre",60000],
+  [35530,"07515583653","Hai Jzma",21000],
+  [35534,"07511859515","besre",12000],
+  [35539,"07509175565","Baroshke",61000],
+  [35546,"07503096981","Sike NEzik Dolar Center",48000],
+  [35547,"07504506925","barushke",41000],
+  [35557,"07505592311","Gre base",98000],
+  [35570,"07507417833","7ay jzma",21000],
+  [35574,"07514401574","Baroshke Nojeen City",12000],
+  [35576,"07507312658","sike- nezik xan kebab",25000],
+  [35581,"07502462993","nzarkani",56000],
+  [35584,"07503932696","etit",21000],
+  [35589,"07515397105","Kevla",25000]
+];
+
+var KEY_OPENED = "wa-opened-v2";
+var KEY_MSG = "rayan-msg-20261013";
+var KEY_LIST = "wa-list-v2";
+var ORDERS = DEFAULT_ORDERS;
+var isDefault = true;
+var opened = {};
+var msgEl = document.getElementById("msg");
+var listEl = document.getElementById("list");
+var nf = new Intl.NumberFormat("en-US");
+
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+
+try { opened = JSON.parse(load(KEY_OPENED) || "{}") || {}; } catch (e) { opened = {}; }
+try {
+  var savedList = JSON.parse(load(KEY_LIST) || "null");
+  if (savedList && savedList.length) { ORDERS = savedList; isDefault = false; }
+} catch (e) {}
+msgEl.value = load(KEY_MSG) || DEFAULT_MSG;
+
+function waUrl(phone) {
+  var intl = "964" + phone.replace(/^0+/, "");
+  return "https://wa.me/" + intl + "?text=" + encodeURIComponent(msgEl.value);
+}
+
+function toAr(n) { return String(n).replace(/\d/g, function (d) { return "٠١٢٣٤٥٦٧٨٩"[d]; }); }
+
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+
+function subLine(o) {
+  var parts = [];
+  if (o[0]) parts.push("#" + o[0]);
+  if (o[2]) parts.push(o[2]);
+  if (o[3]) parts.push(nf.format(o[3]) + " IQD");
+  return parts.length ? '<div class="sub">' + parts.map(function (p) { return "<span>" + esc(p) + "</span>"; }).join("") + "</div>" : "";
+}
+
+function build() {
+  listEl.innerHTML = "";
+  document.getElementById("total").textContent = toAr(ORDERS.length);
+  document.getElementById("listinfo").innerHTML = isDefault
+    ? '<span>شوفێر: <b dir="ltr">RAYAN</b></span><span>ڕێکەفت: <b class="num">١٣-١٠-٢٠٢٦</b></span><span>ژمارا فاتورەیان: <b class="num">' + toAr(ORDERS.length) + '</b></span>'
+    : '<span>لیستا من</span><span>ژمارە: <b class="num">' + toAr(ORDERS.length) + '</b></span>';
+  ORDERS.forEach(function (o, i) {
+    var li = document.createElement("li");
+    li.className = "row" + (opened[o[1]] ? " opened" : "");
+    li.dataset.key = o[1];
+    li.innerHTML =
+      '<div class="n num">' + toAr(i + 1) + '</div>' +
+      '<div class="info">' +
+        '<div class="phone">' + o[1] + '</div>' +
+        subLine(o) +
+      '</div>' +
+      '<div class="actions">' +
+        '<a class="wa" target="_blank" rel="noopener" href="' + waUrl(o[1]) + '">وەتسئاپ</a>' +
+        '<button type="button" class="copy" data-phone="' + o[1] + '">کۆپی</button>' +
+      '</div>';
+    listEl.appendChild(li);
+  });
+  progress();
+}
+
+function refreshLinks() {
+  var links = listEl.querySelectorAll(".wa");
+  ORDERS.forEach(function (o, i) { links[i].href = waUrl(o[1]); });
+}
+
+function progress() {
+  var n = Object.keys(opened).length;
+  document.getElementById("count").textContent = toAr(n);
+  document.getElementById("fill").style.width = (n / ORDERS.length * 100) + "%";
+}
+
+msgEl.addEventListener("input", function () { save(KEY_MSG, msgEl.value); refreshLinks(); });
+
+listEl.addEventListener("click", function (e) {
+  var row = e.target.closest(".row");
+  if (!row) return;
+  if (e.target.closest(".wa")) {
+    opened[row.dataset.key] = 1;
+    row.classList.add("opened");
+    save(KEY_OPENED, JSON.stringify(opened));
+    progress();
+    return;
+  }
+  var btn = e.target.closest(".copy");
+  if (btn) {
+    var phone = btn.dataset.phone;
+    var done = function () { btn.textContent = "کۆپی بوو"; setTimeout(function () { btn.textContent = "کۆپی"; }, 1400); };
+    var fallback = function () {
+      var r = document.createRange();
+      var el = row.querySelector(".phone");
+      r.selectNodeContents(el);
+      var s = window.getSelection(); s.removeAllRanges(); s.addRange(r);
+    };
+    try {
+      navigator.clipboard.writeText(phone).then(done, fallback);
+    } catch (err) { fallback(); }
+  }
+});
+
+document.getElementById("reset").addEventListener("click", function () {
+  opened = {};
+  save(KEY_OPENED, "{}");
+  listEl.querySelectorAll(".row").forEach(function (r) { r.classList.remove("opened"); });
+  progress();
+});
+
+var PHONE_RE = /(?<!\d)(?:\+?964[\s-]?|0)?(7\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?!\d)/g;
+
+function parseNumbers(text) {
+  var out = [];
+  var latin = text.replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); })
+                  .replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
+  latin.split(/\r?\n/).forEach(function (line) {
+    var found = [];
+    var rest = line.replace(PHONE_RE, function (m, a, b, c) { found.push("0" + a + b + c); return " "; });
+    rest = rest.replace(/\s+/g, " ").trim();
+    found.forEach(function (p) { out.push([null, p, found.length === 1 ? rest : "", null]); });
+  });
+  return out;
+}
+
+function show(list, asDefault) {
+  ORDERS = list;
+  isDefault = asDefault;
+  if (asDefault) { try { localStorage.removeItem(KEY_LIST); } catch (e) {} }
+  else save(KEY_LIST, JSON.stringify(list));
+  build();
+}
+
+var pasteEl = document.getElementById("paste");
+var pasteMsg = document.getElementById("pasteMsg");
+
+function say(t) { pasteMsg.textContent = t; }
+
+document.getElementById("make").addEventListener("click", function () {
+  var list = parseNumbers(pasteEl.value), seen = {}, uniq = [];
+  list.forEach(function (o) { if (!seen[o[1]]) { seen[o[1]] = 1; uniq.push(o); } });
+  if (!uniq.length) { say("چ ژمارەیێن دروست نەهاتنە دیتن. ژمارە دڤێت وەک ٠٧٥٠٨٩٨٩٥٨١ بن."); return; }
+  opened = {}; save(KEY_OPENED, "{}");
+  show(uniq, false);
+  say("هاتن دانان: " + toAr(uniq.length) + " ژمارە.");
+  pasteEl.value = "";
+});
+
+document.getElementById("append").addEventListener("click", function () {
+  var list = parseNumbers(pasteEl.value), seen = {}, added = 0, base = ORDERS.slice();
+  base.forEach(function (o) { seen[o[1]] = 1; });
+  list.forEach(function (o) { if (!seen[o[1]]) { seen[o[1]] = 1; base.push(o); added++; } });
+  if (!list.length) { say("چ ژمارەیێن دروست نەهاتنە دیتن."); return; }
+  show(base, false);
+  say(added ? "هاتن زێدەکرن: " + toAr(added) + " ژمارە." : "هەمی ژمارە بەری نوکە ل لیستێ بوون.");
+  pasteEl.value = "";
+});
+
+document.getElementById("restore").addEventListener("click", function () {
+  show(DEFAULT_ORDERS, true);
+  say("لیستا ١٣-١٠ هاتە ڤەگەڕاندن.");
+});
+
+// ---- tabs ----
+document.querySelectorAll(".tab").forEach(function (t) {
+  t.addEventListener("click", function () {
+    document.querySelectorAll(".tab").forEach(function (x) {
+      var on = x === t;
+      x.setAttribute("aria-selected", on ? "true" : "false");
+      document.getElementById(x.dataset.pane).hidden = !on;
+    });
+    if (t.id === "tab-text") pasteEl.focus();
+  });
+});
+
+// ---- reading with Claude ----
+var sampleFn = null, imgLimits = null;
+var srcBtns = document.querySelectorAll(".src");
+
+function updateAvail() {
+  var ok = !!(sampleFn && imgLimits);
+  document.getElementById("photoNote").hidden = ok;
+  ["btnCam", "btnGal"].forEach(function (id) { document.getElementById(id).disabled = !ok; });
+}
+updateAvail();
+(async function () {
+  try {
+    if (!window.claude || !window.claude.use) { updateAvail(); return; }
+    sampleFn = await window.claude.use("sample");
+    if (sampleFn) {
+      var l = await sampleFn.limits().catch(function () { return null; });
+      imgLimits = (l && l.images) || null;
+    }
+  } catch (e) {}
+  updateAvail();
+})();
+
+function setBusy(b) { srcBtns.forEach(function (x) { x.disabled = b; }); if (!b) updateAvail(); }
+
+function errCopy(e) {
+  var c = e && e.code;
+  if (c === "not_granted" || c === "sampling_disabled") return "ڕێگە نەهاتە دان بو بکارئینانا Claude. ڕێکا ٣ بکاربینە.";
+  if (c === "rate_limited") return "گەلەک داخازی هاتنە کرن. ماوەکێ ببە و پاشی دووبارە بکە.";
+  if (c === "image_rejected") return "ئەڤ وێنە نەهاتە قبوولکرن. وێنەکێ دی (JPG یان PNG) هلبژێرە.";
+  if (c === "images_unavailable") return "خواندنا وێنەی ل ڤێرێ بەردەست نینە. ڕێکا ٣ بکاربینە.";
+  if (c === "no_pdf") return "ئەز نەشێم ڤی PDFی بخوینم. وێنەکێ ژ وی بگرە و ڕێکا ١ بکاربینە.";
+  return "نەهاتە خواندن. دووبارە بکە یان ڕێکا ٣ بکاربینە.";
+}
+
+var IMG_PROMPT = "These images show a paper or screen with customer phone numbers (Iraqi mobile numbers such as 07508989581, 0750 898 9581 or +964 750 898 9581; Arabic-Indic digits may appear). " +
+  "Extract every phone number you can read, in order of appearance. Write each as 11 Latin digits starting with 07. " +
+  "Add a short note (a name or address on the same row) only if it is clearly visible, otherwise an empty string. " +
+  "Skip any number you cannot read with certainty; never guess digits. " +
+  'Reply with only a JSON array like [{"phone":"07508989581","note":"Baroshke"}].';
+
+async function readImages(blobs) {
+  if (!sampleFn || !imgLimits) throw { code: "images_unavailable" };
+  var arr = await sampleFn.json(IMG_PROMPT, { images: blobs.slice(0, imgLimits.maxCount), modelTier: "default" });
+  if (!Array.isArray(arr)) arr = [];
+  var text = arr.map(function (x) { return (x && x.phone ? x.phone : "") + (x && x.note ? " " + x.note : ""); }).join("\n");
+  return parseNumbers(text);
+}
+
+function putInBox(found) {
+  var lines = found.map(function (o) { return o[1] + (o[2] ? " " + o[2] : ""); });
+  var cur = pasteEl.value.trim();
+  pasteEl.value = (cur ? cur + "\n" : "") + lines.join("\n");
+  say(found.length
+    ? "دیتن: " + toAr(found.length) + " ژمارە. ڕاستی بکە ل گەل وەرەقێ، پاشی «لیستەکا نو» یان «زێدەکرن بو لیستێ» بکلیک بکە."
+    : "چ ژمارە نەهاتنە دیتن. وێنەکێ ڕوونتر بگرە یان ڕێکا ٣ بکاربینە.");
+}
+
+async function onPhotos(input) {
+  var files = Array.prototype.slice.call(input.files || []);
+  input.value = "";
+  if (!files.length) return;
+  setBusy(true);
+  say("دخوینم... ئەڤە دشێت چەند چرکەکان بخوازیت.");
+  try {
+    var extra = imgLimits && files.length > imgLimits.maxCount;
+    putInBox(await readImages(files));
+    if (extra) say(pasteMsg.textContent + " تنێ " + toAr(imgLimits.maxCount) + " وێنەیێن ئێکێ هاتنە خواندن.");
+  } catch (e) { say(errCopy(e)); }
+  setBusy(false);
+}
+
+async function pdfToText(buf) {
+  if (!window.pdfjsLib) throw { code: "no_pdf" };
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  var text = "", pages = [];
+  for (var p = 1; p <= pdf.numPages; p++) {
+    var page = await pdf.getPage(p);
+    var c = await page.getTextContent();
+    text += c.items.map(function (i) { return i.str; }).join(" ") + "\n";
+    pages.push(page);
+  }
+  return { text: text, pages: pages };
+}
+
+async function pagesToImages(pages, max) {
+  var out = [];
+  for (var i = 0; i < Math.min(pages.length, max); i++) {
+    var vp = pages[i].getViewport({ scale: 1.6 });
+    var cv = document.createElement("canvas");
+    cv.width = vp.width; cv.height = vp.height;
+    await pages[i].render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
+    out.push(await new Promise(function (res) { cv.toBlob(res, "image/jpeg", 0.85); }));
+  }
+  return out;
+}
+
+async function onPdf(input) {
+  var file = input.files && input.files[0];
+  input.value = "";
+  if (!file) return;
+  setBusy(true);
+  say("دخوینم...");
+  try {
+    var buf = await file.arrayBuffer();
+    var r = await pdfToText(buf);
+    var found = parseNumbers(r.text);
+    if (!found.length && sampleFn && imgLimits) {
+      say("PDF وەک وێنەیە، Claude دخوینیت... ئەڤە دشێت چەند چرکەکان بخوازیت.");
+      var blobs = await pagesToImages(r.pages, imgLimits.maxCount);
+      found = await readImages(blobs);
+    }
+    var seen = {}, uniq = [];
+    found.forEach(function (o) { if (!seen[o[1]]) { seen[o[1]] = 1; uniq.push(o); } });
+    putInBox(uniq);
+  } catch (e) { say(errCopy(e.code ? e : { code: "no_pdf" })); }
+  setBusy(false);
+}
+
+document.getElementById("btnCam").addEventListener("click", function () { document.getElementById("fCam").click(); });
+document.getElementById("btnGal").addEventListener("click", function () { document.getElementById("fGal").click(); });
+document.getElementById("btnPdf").addEventListener("click", function () { document.getElementById("fPdf").click(); });
+document.getElementById("fCam").addEventListener("change", function () { onPhotos(this); });
+document.getElementById("fGal").addEventListener("change", function () { onPhotos(this); });
+document.getElementById("fPdf").addEventListener("change", function () { onPdf(this); });
+
+build();
+</script>
+
+</body></html>
