@@ -71,24 +71,20 @@ details.add[open] > summary::after { content: "－"; }
 .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
 .pane { display: flex; flex-direction: column; gap: 8px; }
 .tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
 .tool {
+  display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; padding-inline: 14px; border-radius: 6px; font: inherit; font-size: 0.9rem;
   background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
 }
 .tool.main { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
 .tool:disabled { opacity: 0.5; cursor: progress; }
 .tool.warn { border-color: var(--accent); color: var(--accent); }
-.thumbs { display: flex; flex-wrap: wrap; gap: 6px; }
-.thumbs img { height: 72px; width: auto; max-width: 100%; border-radius: 4px; border: 1px solid var(--line); }
 .status { color: var(--muted); font-size: 0.88rem; margin: 0; min-height: 1.2em; }
 #paste { min-height: 7rem; font-family: var(--font-mono); font-size: 0.85rem; direction: ltr; text-align: left; }
 
 .bar { display: flex; flex-direction: column; gap: 8px; }
 .bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
-.bar-top button {
-  font: inherit; font-size: 0.85rem; color: var(--muted); background: none;
-  border: 0; padding: 8px 0; cursor: pointer; text-decoration: underline; text-underline-offset: 3px;
-}
 .track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
 .fill { height: 100%; width: 0; background: var(--accent); transition: width 0.25s ease; }
 
@@ -148,25 +144,15 @@ details.add[open] > summary::after { content: "－"; }
     <summary>ژمارە زێدە بکە</summary>
     <div class="addbody">
       <div class="tabs" role="tablist" aria-label="ڕێکێن زێدەکرنێ">
-        <button type="button" class="tab" role="tab" id="tab-photo" data-pane="pane-photo" aria-selected="true">وێنە</button>
-        <button type="button" class="tab" role="tab" id="tab-pdf" data-pane="pane-pdf" aria-selected="false">PDF</button>
+        <button type="button" class="tab" role="tab" id="tab-pdf" data-pane="pane-pdf" aria-selected="true">PDF</button>
         <button type="button" class="tab" role="tab" id="tab-text" aria-selected="false">ب دەستی</button>
       </div>
-      <div class="pane" id="pane-photo" role="tabpanel" aria-labelledby="tab-photo">
+      <div class="pane" id="pane-pdf" role="tabpanel" aria-labelledby="tab-pdf">
         <div class="tools">
-          <button type="button" class="tool main" id="btnCam">وێنەی وەرەقێ بگرە</button>
-          <button type="button" class="tool" id="btnGal">ژ گالەریێ هلبژێرە</button>
+          <label class="tool main" for="fPdf">فایلەکێ PDF بلند بکە</label>
+          <input type="file" id="fPdf" class="vh" accept="application/pdf,.pdf">
         </div>
-        <input type="file" id="fCam" accept="image/*" capture="environment" hidden>
-        <input type="file" id="fGal" accept="image/*" multiple hidden>
       </div>
-      <div class="pane" id="pane-pdf" role="tabpanel" aria-labelledby="tab-pdf" hidden>
-        <div class="tools">
-          <button type="button" class="tool main" id="btnPdf">فایلەکێ PDF بلند بکە</button>
-        </div>
-        <input type="file" id="fPdf" accept="application/pdf,.pdf" hidden>
-      </div>
-      <div class="thumbs" id="thumbs"></div>
       <p class="status" id="pasteMsg" aria-live="polite"></p>
 
       <label class="lbl" for="paste">کود | ژمارە | شوێن | بها</label>
@@ -184,7 +170,7 @@ details.add[open] > summary::after { content: "－"; }
   <section class="bar" aria-live="polite">
     <div class="bar-top">
       <strong>ڤەکری: <span class="num" id="count">٠</span> ژ <span class="num" id="total">٠</span></strong>
-      <button type="button" id="reset">ڤالاکرنا نیشانان</button>
+      <button type="button" class="tool" id="reset">ڤالاکرنا نیشانان</button>
     </div>
     <div class="track"><div class="fill" id="fill"></div></div>
   </section>
@@ -194,7 +180,7 @@ details.add[open] > summary::after { content: "－"; }
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <script>
-var DEFAULT_MSG = "سلاڤ، تەلەبیەکا تە هەیە ژ دەڤ کۆمپانیا مە. هیڤی دکەین تەلەفۆنا خو ل نک خو هەبیت، ل ماوێ چەند خولەکەکێ دا تەلەبیا تە دێ گەهیتە تە.";
+var DEFAULT_MSG = "سلاڤ، تە تەلەبیەکا هەی ژ دەڤ Laxe Online. هیڤی دکەین وە هاش تەلەفۆنا خو هەبیت، ل ماوێ چەند دەژمێرێت بهێت دا دێ تەلەبیا تە گەهیتە تە،\nبو پتر ئاسانکرنێ لوکەیشنێ خو فرێکە.\nدگەل ڕێزگرتنێ";
 
 // [code, phone, place, total]
 var DEFAULT_ORDERS = [
@@ -234,7 +220,7 @@ var DEFAULT_ORDERS = [
   ["35589","07515397105","Kevla",25000]
 ];
 
-var KEY_LISTS = "wa-lists-v3", KEY_CUR = "wa-cur-v3", KEY_MSG = "rayan-msg-20261013";
+var KEY_LISTS = "wa-lists-v3", KEY_CUR = "wa-cur-v3", KEY_MSG = "wa-msg-v4";
 var nf = new Intl.NumberFormat("en-US");
 var msgEl = document.getElementById("msg");
 var listEl = document.getElementById("list");
@@ -242,7 +228,6 @@ var selEl = document.getElementById("listSel");
 var pasteEl = document.getElementById("paste");
 var nameEl = document.getElementById("listName");
 var statusEl = document.getElementById("pasteMsg");
-var thumbsEl = document.getElementById("thumbs");
 
 function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -395,9 +380,10 @@ function toNum(s) {
   return isNaN(n) ? null : n;
 }
 
+var CTRL = /[\u200e\u200f\u202a-\u202e\u2066-\u2069\u061c]/g;
 function parseRows(text) {
   var out = [];
-  normDigits(text).split(/\r?\n/).forEach(function (line) {
+  normDigits(text).replace(CTRL, "").split(/\r?\n/).forEach(function (line) {
     if (!line.trim()) return;
     if (line.indexOf("|") > -1) {
       var p = line.split("|").map(function (x) { return x.trim(); });
@@ -409,29 +395,22 @@ function parseRows(text) {
     var found = [];
     var rest = line.replace(PHONE_G, function (m, pre, a, b, c) { found.push("0" + a + b + c); return pre + " "; });
     if (!found.length) return;
-    var nums = [], words = [];
-    rest.split(/\s+/).filter(Boolean).forEach(function (t) {
-      if (/^\d{1,3}([,.]\d{3})+$/.test(t) || /^\d{4,7}$/.test(t)) nums.push(t); else words.push(t);
+    var toks = rest.split(/\s+/).filter(Boolean);
+    var isAmt = function (t) { return /^\d{1,3}([,.]\d{3})+$/.test(t); };
+    var hasAmt = toks.some(isAmt);
+    var cn = [], pn = [], words = [];
+    toks.forEach(function (t) {
+      if (isAmt(t)) cn.push(toNum(t));
+      else if (/^\d{4,7}$/.test(t)) pn.push(t);
+      else if (hasAmt && /^\d{1,3}$/.test(t)) { /* row number of a printed report */ }
+      else words.push(t);
     });
     var code = null, total = null;
-    if (found.length === 1) {
-      if (nums.length >= 2) { code = nums[0]; total = toNum(nums[nums.length - 1]); }
-      else if (nums.length === 1) total = toNum(nums[0]);
-    }
-    found.forEach(function (p) { out.push([code, p, found.length === 1 ? words.join(" ") : "", found.length === 1 ? total : null]); });
-  });
-  return out;
-}
-
-function mapRows(arr) {
-  var out = [];
-  if (!Array.isArray(arr)) return out;
-  arr.forEach(function (x) {
-    if (!x) return;
-    var ph = firstPhone(String(x.phone || ""));
-    if (!ph) return;
-    var code = normDigits(String(x.code == null ? "" : x.code)).replace(/\D/g, "") || null;
-    out.push([code, ph, String(x.place || "").trim(), toNum(String(x.total == null ? "" : x.total))]);
+    if (cn.length) { total = Math.max.apply(null, cn); code = pn.length ? pn[0] : null; }
+    else if (pn.length >= 2) { code = pn[0]; total = toNum(pn[pn.length - 1]); }
+    else if (pn.length === 1) { total = toNum(pn[0]); }
+    var single = found.length === 1;
+    found.forEach(function (p) { out.push([single ? code : null, p, single ? words.join(" ") : "", single ? total : null]); });
   });
   return out;
 }
@@ -462,7 +441,7 @@ document.getElementById("make").addEventListener("click", function () {
   var l = { id: newId(), name: nameEl.value.trim() || autoName(), orders: rows, opened: {} };
   lists.push(l); cur = l;
   persist(); build();
-  pasteEl.value = ""; nameEl.value = ""; thumbsClear();
+  pasteEl.value = ""; nameEl.value = "";
   say("هاتە پاراستن: " + l.name);
   document.getElementById("addBox").open = false;
 });
@@ -474,7 +453,7 @@ document.getElementById("append").addEventListener("click", function () {
   if (!rows.length) { say("چ ژمارەیێن نو نەهاتنە دیتن."); return; }
   cur.orders = cur.orders.concat(rows);
   persist(); build();
-  pasteEl.value = ""; thumbsClear();
+  pasteEl.value = "";
   say("هاتن زێدەکرن: " + toAr(rows.length));
   document.getElementById("addBox").open = false;
 });
@@ -491,143 +470,41 @@ document.querySelectorAll(".tab").forEach(function (t) {
   });
 });
 
-// ---------- reading with Claude ----------
-var sampleFn = null, imgLimits = null;
-var initP = (async function () {
-  try {
-    if (!window.claude || !window.claude.use) return;
-    sampleFn = await window.claude.use("sample");
-    if (sampleFn) {
-      var l = await sampleFn.limits().catch(function () { return null; });
-      imgLimits = (l && l.images) || null;
-    }
-  } catch (e) {}
-})();
-
-var busyBtns = ["btnCam", "btnGal", "btnPdf"].map(function (id) { return document.getElementById(id); });
-function setBusy(b) { busyBtns.forEach(function (x) { x.disabled = b; }); }
-
-function errCopy(e) {
-  var c = e && e.code;
-  if (c === "not_granted" || c === "sampling_disabled") return "ڕێگە نەهاتە دان بو Claude. ژمارەیان ب دەستی بنڤیسە.";
-  if (c === "rate_limited") return "گەلەک داخازی هاتنە کرن. ماوەکێ ببە و دووبارە بکە.";
-  if (c === "image_rejected") return "ئەڤ وێنە نەهاتە قبوولکرن. وێنەکێ دی هلبژێرە.";
-  if (c === "images_unavailable") return "خواندنا وێنەی ل ڤێرێ بەردەست نینە. ژمارەیان ژ وێنەی ب دەستی بنڤیسە.";
-  return "نەهاتە خواندن. دووبارە بکە یان ب دەستی بنڤیسە.";
-}
-
-var ROW_SPEC = 'Each row has: "code" (the invoice/order number, usually 5 digits), "phone" (customer Iraqi mobile number, 11 digits starting with 07), ' +
-  '"place" (the delivery place or address text exactly as printed), "total" (the amount printed on that row, digits only, no separators). ' +
-  'Use null for any field you cannot read with certainty. Never guess digits. Skip header and summary rows. ' +
-  'Reply with only a JSON array like [{"code":"35290","phone":"07508989581","place":"Baroshke","total":30000}].';
-
-async function readImages(blobs) {
-  var arr = await sampleFn.json(
-    "These images show a delivery report or paper listing customer orders. Extract one object per order row, in order. " + ROW_SPEC,
-    { images: blobs.slice(0, imgLimits.maxCount) }
-  );
-  return mapRows(arr);
-}
-
-async function structureText(text) {
-  var arr = await sampleFn.json(
-    "Below is text extracted from a driver's delivery invoice report (columns may be in any order). Extract one object per invoice row. " + ROW_SPEC + "\n\n" + text.slice(0, 120000)
-  );
-  return mapRows(arr);
-}
-
-function thumbsClear() {
-  thumbsEl.querySelectorAll("img").forEach(function (i) { try { URL.revokeObjectURL(i.src); } catch (e) {} });
-  thumbsEl.innerHTML = "";
-}
-
-async function onPhotos(input) {
-  var files = Array.prototype.slice.call(input.files || []);
-  input.value = "";
-  if (!files.length) return;
-  thumbsClear();
-  files.forEach(function (f) {
-    var im = document.createElement("img");
-    im.alt = "";
-    try { im.src = URL.createObjectURL(f); } catch (e) {}
-    thumbsEl.appendChild(im);
-  });
-  setBusy(true);
-  say("دخوینم... ئەڤە دشێت چەند چرکەکان بخوازیت.");
-  try {
-    await initP;
-    if (!sampleFn || !imgLimits) { say("خواندنا ب Claude ل ڤێرێ بەردەست نینە. وێنە ل سەرێ دیارە، ژمارەیان ژ وێ ب دەستی بنڤیسە."); setBusy(false); return; }
-    putInBox(await readImages(files));
-  } catch (e) { say(errCopy(e)); }
-  setBusy(false);
-}
-
+// ---------- PDF ----------
 async function pdfRead(buf) {
-  if (!window.pdfjsLib) throw { code: "no_pdf" };
   pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
   var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
-  var text = "", pages = [];
+  var text = "";
   for (var p = 1; p <= pdf.numPages; p++) {
     var page = await pdf.getPage(p);
     var c = await page.getTextContent();
     var rows = {};
     c.items.forEach(function (i) {
-      if (!i.str.trim()) return;
+      var str = i.str.replace(CTRL, "");
+      if (!str.trim()) return;
       var y = Math.round(i.transform[5] / 4);
-      (rows[y] = rows[y] || []).push(i);
+      (rows[y] = rows[y] || []).push({ x: i.transform[4], s: str });
     });
     Object.keys(rows).map(Number).sort(function (a, b) { return b - a; }).forEach(function (y) {
-      text += rows[y].sort(function (a, b) { return a.transform[4] - b.transform[4]; })
-        .map(function (i) { return i.str; }).join(" ") + "\n";
+      text += rows[y].sort(function (a, b) { return a.x - b.x; }).map(function (i) { return i.s; }).join(" ") + "\n";
     });
-    pages.push(page);
   }
-  return { text: text, pages: pages };
+  return text;
 }
 
-async function pagesToImages(pages, max) {
-  var out = [];
-  for (var i = 0; i < Math.min(pages.length, max); i++) {
-    var vp = pages[i].getViewport({ scale: 1.6 });
-    var cv = document.createElement("canvas");
-    cv.width = vp.width; cv.height = vp.height;
-    await pages[i].render({ canvasContext: cv.getContext("2d"), viewport: vp }).promise;
-    out.push(await new Promise(function (res) { cv.toBlob(res, "image/jpeg", 0.85); }));
-  }
-  return out;
-}
-
-async function onPdf(input) {
-  var file = input.files && input.files[0];
-  input.value = "";
+document.getElementById("fPdf").addEventListener("change", async function () {
+  var input = this, file = input.files && input.files[0];
   if (!file) return;
-  thumbsClear();
-  setBusy(true);
   say("دخوینم...");
   try {
-    var r = await pdfRead(await file.arrayBuffer());
-    await initP;
-    var found = [];
-    if (r.text.trim() && sampleFn) {
-      try { found = await structureText(r.text); } catch (e) { found = []; }
-    }
-    if (!found.length) found = parseRows(r.text);
-    if (!found.length && sampleFn && imgLimits) {
-      say("PDF وەک وێنەیە، Claude دخوینیت...");
-      found = await readImages(await pagesToImages(r.pages, imgLimits.maxCount));
-    }
-    putInBox(uniqueRows(found, {}));
-  } catch (e) { say(errCopy(e && e.code && e.code !== "no_pdf" ? e : { code: "x" })); }
-  setBusy(false);
-}
-
-function pick(btnId, inputId) {
-  document.getElementById(btnId).addEventListener("click", function () { document.getElementById(inputId).click(); });
-}
-pick("btnCam", "fCam"); pick("btnGal", "fGal"); pick("btnPdf", "fPdf");
-document.getElementById("fCam").addEventListener("change", function () { onPhotos(this); });
-document.getElementById("fGal").addEventListener("change", function () { onPhotos(this); });
-document.getElementById("fPdf").addEventListener("change", function () { onPdf(this); });
+    if (!window.pdfjsLib) throw new Error("no pdf.js");
+    var buf = await file.arrayBuffer();
+    putInBox(uniqueRows(parseRows(await pdfRead(buf)), {}));
+  } catch (e) {
+    say("ئەڤ PDF نەهاتە خواندن. ژمارەیان ب دەستی بنڤیسە.");
+  }
+  try { input.value = ""; } catch (e) {}
+});
 
 build();
 </script>
