@@ -1,0 +1,662 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>نامەیێن گەهاندنێ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+/* Layout: one narrow column. Money summary first, saved lists, message, collapsed add-box, search and grouping controls, then a ledger of orders (optionally grouped by area) with WhatsApp and SIM-call actions per row. Burgundy accent. */
+:root {
+  --bg: #f8f4f5;
+  --surface: #ffffff;
+  --fg: #2a1a1f;
+  --muted: #6f5a61;
+  --line: #e6d9dd;
+  --accent: #8a1c3c;
+  --accent-fg: #ffffff;
+  --done-bg: #f6e8ec;
+  --done-fg: #8a1c3c;
+  --font-display: "Noto Naskh Arabic", "Geeza Pro", "Noto Sans Arabic", serif;
+  --font-body: "Noto Sans Arabic", "Segoe UI", Tahoma, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #181012; --surface: #22181b; --fg: #f4e9ec; --muted: #b8a1a8; --line: #3a2a2f;
+    --accent: #c9415f; --accent-fg: #ffffff; --done-bg: #2e1b21; --done-fg: #eb8da4; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #181012; --surface: #22181b; --fg: #f4e9ec; --muted: #b8a1a8; --line: #3a2a2f;
+  --accent: #c9415f; --accent-fg: #ffffff; --done-bg: #2e1b21; --done-fg: #eb8da4; color-scheme: dark;
+}
+body {
+  background: var(--bg); color: var(--fg);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.6;
+  padding-inline: 16px; padding-block: 20px 48px;
+}
+.wrap { max-width: 640px; margin-inline: auto; display: flex; flex-direction: column; gap: 18px; }
+h1 { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.25; margin: 0; text-wrap: balance; }
+.meta { color: var(--muted); font-size: 0.9rem; display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 4px 0 0; }
+.meta b { color: var(--fg); font-weight: 600; }
+.num { font-variant-numeric: tabular-nums; }
+
+.stats { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--line); }
+.stat { padding-block: 10px; padding-inline: 0 12px; display: flex; flex-direction: column; min-width: 0; }
+.stat.big { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+.stat .k { color: var(--muted); font-size: 0.85rem; }
+.stat .v { font-size: 1.25rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.stat.big .v { font-size: 1.9rem; color: var(--accent); font-family: var(--font-mono); direction: ltr; text-align: right; }
+.stat small { color: var(--muted); font-size: 0.82rem; direction: ltr; text-align: right; }
+
+.listbar { display: flex; gap: 8px; }
+select, input[type="text"], input[type="search"], textarea {
+  font: inherit; color: var(--fg); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0;
+}
+select { flex: 1; min-height: 44px; }
+input[type="text"], input[type="search"] { width: 100%; min-height: 44px; }
+textarea { width: 100%; resize: vertical; line-height: 1.7; }
+select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.editor { display: flex; flex-direction: column; gap: 8px; }
+.editor label, .lbl { font-weight: 600; font-size: 0.95rem; }
+#msg { min-height: 7.5rem; }
+
+details.add { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+details.add > summary {
+  min-height: 48px; display: flex; align-items: center; padding-inline: 14px; cursor: pointer;
+  font-weight: 600; list-style: none; color: var(--accent);
+}
+details.add > summary::-webkit-details-marker { display: none; }
+details.add > summary::after { content: "＋"; margin-inline-start: auto; }
+details.add[open] > summary::after { content: "－"; }
+.addbody { display: flex; flex-direction: column; gap: 12px; padding: 4px 14px 16px; }
+.tabs { display: flex; flex-wrap: wrap; gap: 4px; border-bottom: 1px solid var(--line); }
+.tab {
+  font: inherit; font-size: 0.9rem; min-height: 44px; padding-inline: 12px; background: none; border: 0;
+  border-bottom: 2px solid transparent; color: var(--muted); cursor: pointer;
+}
+.tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
+.pane { display: flex; flex-direction: column; gap: 8px; }
+.vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
+.tool {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: 44px; padding-inline: 14px; border-radius: 6px; font: inherit; font-size: 0.9rem;
+  background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
+}
+.tool.main { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
+.tool.warn { border-color: var(--accent); color: var(--accent); }
+.status { color: var(--muted); font-size: 0.88rem; margin: 0; min-height: 1.2em; }
+#paste { min-height: 7rem; font-family: var(--font-mono); font-size: 0.85rem; direction: ltr; text-align: left; }
+
+.controls { display: flex; flex-direction: column; gap: 10px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button {
+  flex: 1; min-height: 44px; font: inherit; font-size: 0.92rem; background: var(--surface); color: var(--fg);
+  border: 0; cursor: pointer;
+}
+.seg button + button { border-inline-start: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.chks { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.chk { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 0.9rem; cursor: pointer; }
+.chk input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+.bar { display: flex; flex-direction: column; gap: 8px; }
+.bar-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
+.fill { height: 100%; width: 0; background: var(--accent); transition: width 0.25s ease; }
+
+.list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
+.empty { padding-block: 24px; color: var(--muted); text-align: center; }
+.grp {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-block: 12px 8px; border-bottom: 2px solid var(--accent); font-weight: 600;
+}
+.grp .gn { direction: ltr; unicode-bidi: plaintext; }
+.grp .gs { color: var(--muted); font-weight: 400; font-size: 0.88rem; direction: ltr; unicode-bidi: plaintext; }
+.row {
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 6px 12px; align-items: center;
+  padding-block: 14px; border-bottom: 1px solid var(--line);
+}
+.row .n { color: var(--muted); font-size: 0.85rem; text-align: center; }
+.info { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.phone { font-family: var(--font-mono); font-size: 1.05rem; direction: ltr; text-align: right; unicode-bidi: plaintext; letter-spacing: 0.02em; }
+.sub { color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0 12px; }
+.sub span { direction: ltr; unicode-bidi: plaintext; overflow-wrap: anywhere; }
+.sub .amt { color: var(--fg); font-weight: 600; }
+.actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-inline-start: calc(2rem + 12px); }
+.wa, .call {
+  flex: 1 1 6.5rem; display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding-inline: 14px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; text-decoration: none;
+}
+.wa { background: var(--accent); color: var(--accent-fg); }
+.wa:hover { filter: brightness(1.1); }
+.call { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.mini {
+  flex: 1 1 6.5rem;
+  min-height: 44px; padding-inline: 12px; border-radius: 6px; font: inherit; font-size: 0.85rem;
+  background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
+}
+.row.opened { background: var(--done-bg); }
+.row.opened .wa { background: transparent; color: var(--done-fg); border: 1.5px solid var(--done-fg); }
+.row.opened .n { color: var(--done-fg); }
+.row.done { opacity: 0.55; }
+.row.done .phone { text-decoration: line-through; }
+
+@media (max-width: 480px) { h1 { font-size: 1.6rem; } }
+@media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
+</style>
+
+<main class="wrap" dir="rtl" lang="ckb">
+  <header>
+    <h1>نامەیێن گەهاندنێ ب وەتسئاپێ</h1>
+    <p class="meta" id="listinfo"></p>
+  </header>
+
+  <section class="stats" aria-label="کورتی">
+    <div class="stat big"><span class="k">کۆیێ گشتی یێ هەمی تەلەبیان</span><b class="v num" id="sumAll">0</b></div>
+    <div class="stat"><span class="k">ژمارا تەلەبیان</span><b class="v num" id="cntAll">٠</b></div>
+    <div class="stat"><span class="k">ماینە (نەگەهشتین)</span><b class="v num" id="cntLeft">٠</b><small id="sumLeft"></small></div>
+  </section>
+
+  <div class="listbar">
+    <select id="listSel" aria-label="لیستا هەلبژارتی"></select>
+    <button type="button" class="tool" id="delList">سڕینەوە</button>
+  </div>
+
+  <section class="editor">
+    <label for="msg">نامە</label>
+    <textarea id="msg"></textarea>
+  </section>
+
+  <details class="add" id="addBox">
+    <summary>ژمارە زێدە بکە</summary>
+    <div class="addbody">
+      <div class="tabs" role="tablist" aria-label="ڕێکێن زێدەکرنێ">
+        <button type="button" class="tab" role="tab" id="tab-pdf" data-pane="pane-pdf" aria-selected="true">PDF</button>
+        <button type="button" class="tab" role="tab" id="tab-text" aria-selected="false">ب دەستی</button>
+      </div>
+      <div class="pane" id="pane-pdf" role="tabpanel" aria-labelledby="tab-pdf">
+        <div class="tools">
+          <label class="tool main" for="fPdf">فایلەکێ PDF بلند بکە</label>
+          <input type="file" id="fPdf" class="vh" accept="application/pdf,.pdf">
+        </div>
+      </div>
+      <p class="status" id="pasteMsg" aria-live="polite"></p>
+
+      <label class="lbl" for="paste">کود | ژمارە | شوێن | بها</label>
+      <textarea id="paste" placeholder="35290 | 07508989581 | Baroshke | 30000&#10;07514904703 Baroshke 21000"></textarea>
+
+      <label class="lbl" for="listName">ناڤێ لیستێ</label>
+      <input type="text" id="listName" autocomplete="off" placeholder="بو نموونە: RAYAN ١٤-١٠">
+      <div class="tools">
+        <button type="button" class="tool main" id="make">لیستەکا نو بپارێزە</button>
+        <button type="button" class="tool" id="append">زێدە بکە بو لیستا هەلبژارتی</button>
+      </div>
+    </div>
+  </details>
+
+  <section class="controls">
+    <input type="search" id="q" autocomplete="off" placeholder="لێگەڕیان: ژمارە، شوێن یان کود" aria-label="لێگەڕیان">
+    <div class="seg" role="group" aria-label="شێوازێ نیشاندانێ">
+      <button type="button" id="vAll" aria-pressed="true">هەمی</button>
+      <button type="button" id="vArea" aria-pressed="false">ل دویڤ شوێنی</button>
+    </div>
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="showDone"> نیشاندانا گەهشتیان</label>
+      <label class="chk"><input type="checkbox" id="autoDone"> پشتی وەتسئاپێ ب خۆ بیتە «گەهشت»</label>
+    </div>
+  </section>
+
+  <section class="bar" aria-live="polite">
+    <div class="bar-top">
+      <strong>ڤەکری: <span class="num" id="count">٠</span> ژ <span class="num" id="total">٠</span></strong>
+      <button type="button" class="tool" id="reset">ڤالاکرنا نیشانان</button>
+    </div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </section>
+
+  <ol class="list" id="list"></ol>
+</main>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+var DEFAULT_MSG = "سلاڤ، تە تەلەبیەکا هەی ژ دەڤ Laxe Online. هیڤی دکەین وە هاش تەلەفۆنا خو هەبیت، ل ماوێ چەند دەژمێرێت بهێت دا دێ تەلەبیا تە گەهیتە تە،\nبو پتر ئاسانکرنێ لوکەیشنێ خو فرێکە.\nدگەل ڕێزگرتنێ";
+
+// [code, phone, place, total]
+var DEFAULT_ORDERS = [
+  ["35290","07508989581","Baroshke",30000],
+  ["35300","07514904703","baroshke",21000],
+  ["35305","07504217269","baroshke",25000],
+  ["35311","07504819715","Nezik Xasta Azadi",21000],
+  ["35353","07505054320","Baroshke",21000],
+  ["35370","07507755382","Baroshke",12000],
+  ["35380","07514600610","7ayshrta- mosa gizi",25000],
+  ["35383","07515490209","Hai Shrta bni",30000],
+  ["35384","07507883160","Hai Shrta Bni",25000],
+  ["35389","07511070755","sarhildan tower",25000],
+  ["35409","07518013287","hayl gzma",30000],
+  ["35438","07503710197","Eminke",33000],
+  ["35439","07507351180","Besre",39000],
+  ["35465","07508580485","barushke",55000],
+  ["35471","07507289868","bn nadi duhok",27000],
+  ["35489","07503652123","7ayshrta bni",18000],
+  ["35497","07503340530","Hai Shrta Sari",55000],
+  ["35499","07501331141","m7ala shele",21000],
+  ["35502","07504315424","barushke",21000],
+  ["35511","07504124793","duhok-m7ala shele",25000],
+  ["35522","07507120814","BARUSHKE",21000],
+  ["35525","07507202130","besre",60000],
+  ["35530","07515583653","Hai Jzma",21000],
+  ["35534","07511859515","besre",12000],
+  ["35539","07509175565","Baroshke",61000],
+  ["35546","07503096981","Sike NEzik Dolar Center",48000],
+  ["35547","07504506925","barushke",41000],
+  ["35557","07505592311","Gre base",98000],
+  ["35570","07507417833","7ay jzma",21000],
+  ["35574","07514401574","Baroshke Nojeen City",12000],
+  ["35576","07507312658","sike- nezik xan kebab",25000],
+  ["35581","07502462993","nzarkani",56000],
+  ["35584","07503932696","etit",21000],
+  ["35589","07515397105","Kevla",25000]
+];
+
+var KEY_LISTS = "wa-lists-v3", KEY_CUR = "wa-cur-v3", KEY_MSG = "wa-msg-v4";
+var KEY_VIEW = "wa-view-v5", KEY_SHOWDONE = "wa-showdone-v5", KEY_AUTO = "wa-auto-v5";
+var nf = new Intl.NumberFormat("en-US");
+var msgEl = document.getElementById("msg");
+var listEl = document.getElementById("list");
+var selEl = document.getElementById("listSel");
+var pasteEl = document.getElementById("paste");
+var nameEl = document.getElementById("listName");
+var statusEl = document.getElementById("pasteMsg");
+var qEl = document.getElementById("q");
+
+function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
+function toAr(n) { return String(n).replace(/\d/g, function (d) { return "٠١٢٣٤٥٦٧٨٩"[d]; }); }
+function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+function say(t) { statusEl.textContent = t; }
+function normDigits(s) {
+  return String(s).replace(/[٠-٩]/g, function (d) { return "٠١٢٣٤٥٦٧٨٩".indexOf(d); })
+                  .replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
+}
+
+// ---------- state ----------
+var lists = [], cur = null;
+var view = load(KEY_VIEW) === "area" ? "area" : "all";
+var showDone = load(KEY_SHOWDONE) === "1";
+var autoDone = load(KEY_AUTO) === "1";
+var q = "";
+function newId() { return "l" + Date.now() + Math.floor(Math.random() * 1000); }
+
+try {
+  var s0 = JSON.parse(load(KEY_LISTS) || "null");
+  if (Array.isArray(s0) && s0.length) lists = s0;
+} catch (e) {}
+if (!lists.length) lists = [{ id: "default", name: "RAYAN ١٣-١٠-٢٠٢٦", orders: DEFAULT_ORDERS, opened: {}, done: {} }];
+lists.forEach(function (l) { l.opened = l.opened || {}; l.done = l.done || {}; });
+var curId = load(KEY_CUR);
+cur = lists.filter(function (l) { return l.id === curId; })[0] || lists[0];
+msgEl.value = load(KEY_MSG) || DEFAULT_MSG;
+
+function persist() { save(KEY_LISTS, JSON.stringify(lists)); save(KEY_CUR, cur.id); }
+
+function renderSelect() {
+  selEl.innerHTML = "";
+  lists.forEach(function (l) {
+    var o = document.createElement("option");
+    o.value = l.id;
+    o.textContent = l.name + " (" + toAr(l.orders.length) + ")";
+    if (l === cur) o.selected = true;
+    selEl.appendChild(o);
+  });
+}
+
+// ---------- areas ----------
+var AREA_RULES = [
+  [/b[ao]r[ou]sh?k/i, "Baroshke"],
+  [/shrta|sharta|shurta/i, "Hai Shrta"],
+  [/[jg]zma/i, "Hai Jzma"],
+  [/besre|basra/i, "Besre"],
+  [/shele/i, "Shele"],
+  [/sike/i, "Sike"]
+];
+var NOISE = { hai: 1, "7ay": 1, hayl: 1, m7ala: 1, mahala: 1, duhok: 1, nezik: 1, near: 1 };
+
+function areaOf(place) {
+  var s = String(place || "").trim();
+  if (!s) return { key: "~", name: "بێ شوێن" };
+  for (var i = 0; i < AREA_RULES.length; i++) {
+    if (AREA_RULES[i][0].test(s)) return { key: AREA_RULES[i][1].toLowerCase(), name: AREA_RULES[i][1] };
+  }
+  var t = s.toLowerCase().replace(/[^a-z0-9\u0600-\u06ff\s]/g, " ").split(/\s+/).filter(function (w) { return w && !NOISE[w]; });
+  if (!t.length) return { key: "~", name: "بێ شوێن" };
+  var w = t[0];
+  return { key: w.replace(/u/g, "o"), name: w.charAt(0).toUpperCase() + w.slice(1) };
+}
+
+// ---------- rendering ----------
+function waUrl(phone) {
+  return "https://wa.me/964" + phone.replace(/^0+/, "") + "?text=" + encodeURIComponent(msgEl.value);
+}
+function telUrl(phone) { return "tel:+964" + phone.replace(/^0+/, ""); }
+
+function subLine(o) {
+  var parts = [];
+  if (o[0]) parts.push('<span>#' + esc(o[0]) + '</span>');
+  if (o[2]) parts.push('<span>' + esc(o[2]) + '</span>');
+  if (o[3]) parts.push('<span class="amt">' + nf.format(o[3]) + ' IQD</span>');
+  return parts.length ? '<div class="sub">' + parts.join("") + '</div>' : "";
+}
+
+function rowEl(o, i) {
+  var li = document.createElement("li");
+  var isDone = !!cur.done[o[1]];
+  li.className = "row" + (cur.opened[o[1]] ? " opened" : "") + (isDone ? " done" : "");
+  li.dataset.key = o[1];
+  li.innerHTML =
+    '<div class="n num">' + toAr(i + 1) + '</div>' +
+    '<div class="info"><div class="phone">' + esc(o[1]) + '</div>' + subLine(o) + '</div>' +
+    '<div class="actions">' +
+      '<a class="wa" target="_blank" rel="noopener" href="' + waUrl(o[1]) + '">وەتسئاپ</a>' +
+      '<a class="call" href="' + telUrl(o[1]) + '">پەیوەندی</a>' +
+      '<button type="button" class="mini cp" data-phone="' + esc(o[1]) + '">کۆپی</button>' +
+      '<button type="button" class="mini dn">' + (isDone ? "ڤەگەڕاندن" : "گەهشت") + '</button>' +
+    '</div>';
+  return li;
+}
+
+function visible(o) {
+  if (cur.done[o[1]] && !showDone) return false;
+  if (q) {
+    var hay = normDigits((o[0] || "") + " " + o[1] + " " + (o[2] || "")).toLowerCase();
+    if (hay.indexOf(q) < 0 && hay.replace(/\s/g, "").indexOf(q.replace(/\s/g, "")) < 0) return false;
+  }
+  return true;
+}
+
+function sumOf(items) { return items.reduce(function (a, it) { return a + (it.o[3] || 0); }, 0); }
+
+function renderStats() {
+  var all = 0, left = 0, nLeft = 0;
+  cur.orders.forEach(function (o) {
+    var t = o[3] || 0;
+    all += t;
+    if (!cur.done[o[1]]) { left += t; nLeft++; }
+  });
+  document.getElementById("sumAll").textContent = nf.format(all) + " IQD";
+  document.getElementById("cntAll").textContent = toAr(cur.orders.length);
+  document.getElementById("cntLeft").textContent = toAr(nLeft);
+  document.getElementById("sumLeft").textContent = nf.format(left) + " IQD";
+}
+
+function build() {
+  renderSelect();
+  document.getElementById("listinfo").innerHTML = '<span>لیست: <b>' + esc(cur.name) + '</b></span>';
+  document.getElementById("total").textContent = toAr(cur.orders.length);
+  document.getElementById("vAll").setAttribute("aria-pressed", view === "all" ? "true" : "false");
+  document.getElementById("vArea").setAttribute("aria-pressed", view === "area" ? "true" : "false");
+  document.getElementById("showDone").checked = showDone;
+  document.getElementById("autoDone").checked = autoDone;
+  renderStats();
+
+  listEl.innerHTML = "";
+  var items = [];
+  cur.orders.forEach(function (o, i) { if (visible(o)) items.push({ o: o, i: i }); });
+
+  if (!cur.orders.length) {
+    listEl.innerHTML = '<li class="empty">ژمارە نینن. ژمارەیان زێدە بکە.</li>';
+  } else if (!items.length) {
+    listEl.innerHTML = '<li class="empty">' + (q ? "چ ئەنجام نەهاتنە دیتن." : "هەمی گەهشتینە.") + '</li>';
+  } else if (view === "all") {
+    items.forEach(function (it) { listEl.appendChild(rowEl(it.o, it.i)); });
+  } else {
+    var groups = {}, order = [];
+    items.forEach(function (it) {
+      var a = areaOf(it.o[2]);
+      if (!groups[a.key]) { groups[a.key] = { name: a.name, items: [] }; order.push(a.key); }
+      groups[a.key].items.push(it);
+    });
+    order.sort(function (x, y) {
+      if (x === "~") return 1;
+      if (y === "~") return -1;
+      return groups[y].items.length - groups[x].items.length;
+    });
+    order.forEach(function (k) {
+      var g = groups[k];
+      var h = document.createElement("li");
+      h.className = "grp";
+      h.innerHTML = '<span class="gn">' + esc(g.name) + '</span><span class="gs">' +
+        g.items.length + ' · ' + nf.format(sumOf(g.items)) + ' IQD</span>';
+      listEl.appendChild(h);
+      g.items.forEach(function (it) { listEl.appendChild(rowEl(it.o, it.i)); });
+    });
+  }
+  progress();
+}
+
+function refreshLinks() {
+  listEl.querySelectorAll(".row").forEach(function (r) {
+    var a = r.querySelector(".wa");
+    if (a) a.href = waUrl(r.dataset.key);
+  });
+}
+
+function progress() {
+  var n = cur.orders.filter(function (o) { return cur.opened[o[1]]; }).length;
+  document.getElementById("count").textContent = toAr(n);
+  document.getElementById("fill").style.width = (cur.orders.length ? n / cur.orders.length * 100 : 0) + "%";
+}
+
+msgEl.addEventListener("input", function () { save(KEY_MSG, msgEl.value); refreshLinks(); });
+
+selEl.addEventListener("change", function () {
+  cur = lists.filter(function (l) { return l.id === selEl.value; })[0] || lists[0];
+  persist(); build();
+});
+
+qEl.addEventListener("input", function () { q = normDigits(qEl.value).trim().toLowerCase(); build(); });
+document.getElementById("vAll").addEventListener("click", function () { view = "all"; save(KEY_VIEW, view); build(); });
+document.getElementById("vArea").addEventListener("click", function () { view = "area"; save(KEY_VIEW, view); build(); });
+document.getElementById("showDone").addEventListener("change", function () { showDone = this.checked; save(KEY_SHOWDONE, showDone ? "1" : "0"); build(); });
+document.getElementById("autoDone").addEventListener("change", function () { autoDone = this.checked; save(KEY_AUTO, autoDone ? "1" : "0"); });
+
+var delArmed = null;
+var delBtn = document.getElementById("delList");
+function disarm() {
+  clearTimeout(delArmed); delArmed = null;
+  delBtn.textContent = "سڕینەوە"; delBtn.classList.remove("warn");
+}
+delBtn.addEventListener("click", function () {
+  if (!delArmed) {
+    delBtn.textContent = "دڵنیایی؟ دووبارە کلیک بکە";
+    delBtn.classList.add("warn");
+    delArmed = setTimeout(disarm, 3500);
+    return;
+  }
+  disarm();
+  lists = lists.filter(function (l) { return l !== cur; });
+  if (!lists.length) lists = [{ id: newId(), name: "لیستا نو", orders: [], opened: {}, done: {} }];
+  cur = lists[0];
+  persist(); build();
+});
+
+listEl.addEventListener("click", function (e) {
+  var row = e.target.closest(".row");
+  if (!row) return;
+  var key = row.dataset.key;
+  if (e.target.closest(".wa")) {
+    cur.opened[key] = 1;
+    row.classList.add("opened");
+    persist(); progress();
+    if (autoDone) { cur.done[key] = 1; persist(); setTimeout(build, 400); }
+    return;
+  }
+  if (e.target.closest(".call")) return;
+  if (e.target.closest(".dn")) {
+    if (cur.done[key]) delete cur.done[key]; else cur.done[key] = 1;
+    persist(); build();
+    return;
+  }
+  var btn = e.target.closest(".cp");
+  if (btn) {
+    var done = function () { btn.textContent = "کۆپی بوو"; setTimeout(function () { btn.textContent = "کۆپی"; }, 1400); };
+    var fallback = function () {
+      var r = document.createRange();
+      r.selectNodeContents(row.querySelector(".phone"));
+      var sel = window.getSelection(); sel.removeAllRanges(); sel.addRange(r);
+    };
+    try { navigator.clipboard.writeText(btn.dataset.phone).then(done, fallback); } catch (err) { fallback(); }
+  }
+});
+
+document.getElementById("reset").addEventListener("click", function () {
+  cur.opened = {}; cur.done = {};
+  persist(); build();
+});
+
+// ---------- parsing numbers ----------
+var PHONE_G = /(^|\D)(?:\+?964[\s-]?|0)?(7\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?!\d)/g;
+var PHONE_1 = /(^|\D)(?:\+?964[\s-]?|0)?(7\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?!\d)/;
+var CTRL = new RegExp("[\\u200e\\u200f\\u202a-\\u202e\\u2066-\\u2069\\u061c]", "g");
+
+function firstPhone(s) {
+  var m = PHONE_1.exec(normDigits(s));
+  return m ? "0" + m[2] + m[3] + m[4] : null;
+}
+function toNum(s) {
+  var n = parseInt(normDigits(s).replace(/[^\d]/g, ""), 10);
+  return isNaN(n) ? null : n;
+}
+
+function parseRows(text) {
+  var out = [];
+  normDigits(text).replace(CTRL, "").split(/\r?\n/).forEach(function (line) {
+    if (!line.trim()) return;
+    if (line.indexOf("|") > -1) {
+      var p = line.split("|").map(function (x) { return x.trim(); });
+      if (p.length >= 4) {
+        var ph = firstPhone(p[1]);
+        if (ph) { out.push([p[0].replace(/\D/g, "") || null, ph, p[2], toNum(p[3])]); return; }
+      }
+    }
+    var found = [];
+    var rest = line.replace(PHONE_G, function (m, pre, a, b, c) { found.push("0" + a + b + c); return pre + " "; });
+    if (!found.length) return;
+    var toks = rest.split(/\s+/).filter(Boolean);
+    var isAmt = function (t) { return /^\d{1,3}([,.]\d{3})+$/.test(t); };
+    var hasAmt = toks.some(isAmt);
+    var cn = [], pn = [], words = [];
+    toks.forEach(function (t) {
+      if (isAmt(t)) cn.push(toNum(t));
+      else if (/^\d{4,7}$/.test(t)) pn.push(t);
+      else if (hasAmt && /^\d{1,3}$/.test(t)) { /* row number of a printed report */ }
+      else words.push(t);
+    });
+    var code = null, total = null;
+    if (cn.length) { total = Math.max.apply(null, cn); code = pn.length ? pn[0] : null; }
+    else if (pn.length >= 2) { code = pn[0]; total = toNum(pn[pn.length - 1]); }
+    else if (pn.length === 1) { total = toNum(pn[0]); }
+    var single = found.length === 1;
+    found.forEach(function (p) { out.push([single ? code : null, p, single ? words.join(" ") : "", single ? total : null]); });
+  });
+  return out;
+}
+
+function rowToLine(o) { return [o[0] || "", o[1], o[2] || "", o[3] || ""].join(" | "); }
+
+function uniqueRows(rows, seen) {
+  var out = [];
+  rows.forEach(function (o) { if (!seen[o[1]]) { seen[o[1]] = 1; out.push(o); } });
+  return out;
+}
+
+function putInBox(found) {
+  var cur0 = pasteEl.value.trim();
+  pasteEl.value = (cur0 ? cur0 + "\n" : "") + found.map(rowToLine).join("\n");
+  say(found.length ? "دیتن: " + toAr(found.length) + " ژمارە. ڕاستی بکە و لیستێ بپارێزە." : "چ ژمارە نەهاتنە دیتن.");
+}
+
+// ---------- create / append ----------
+function autoName() {
+  var d = new Date();
+  return "لیست " + toAr(d.getDate()) + "-" + toAr(d.getMonth() + 1) + " " + toAr(String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0"));
+}
+
+document.getElementById("make").addEventListener("click", function () {
+  var rows = uniqueRows(parseRows(pasteEl.value), {});
+  if (!rows.length) { say("چ ژمارەیێن دروست نەهاتنە دیتن."); return; }
+  var l = { id: newId(), name: nameEl.value.trim() || autoName(), orders: rows, opened: {}, done: {} };
+  lists.push(l); cur = l;
+  persist(); build();
+  pasteEl.value = ""; nameEl.value = "";
+  say("هاتە پاراستن: " + l.name);
+  document.getElementById("addBox").open = false;
+});
+
+document.getElementById("append").addEventListener("click", function () {
+  var seen = {};
+  cur.orders.forEach(function (o) { seen[o[1]] = 1; });
+  var rows = uniqueRows(parseRows(pasteEl.value), seen);
+  if (!rows.length) { say("چ ژمارەیێن نو نەهاتنە دیتن."); return; }
+  cur.orders = cur.orders.concat(rows);
+  persist(); build();
+  pasteEl.value = "";
+  say("هاتن زێدەکرن: " + toAr(rows.length));
+  document.getElementById("addBox").open = false;
+});
+
+// ---------- tabs ----------
+document.querySelectorAll(".tab").forEach(function (t) {
+  t.addEventListener("click", function () {
+    document.querySelectorAll(".tab").forEach(function (x) {
+      var on = x === t;
+      x.setAttribute("aria-selected", on ? "true" : "false");
+      if (x.dataset.pane) document.getElementById(x.dataset.pane).hidden = !on;
+    });
+    if (t.id === "tab-text") pasteEl.focus();
+  });
+});
+
+// ---------- PDF ----------
+async function pdfRead(buf) {
+  pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+  var pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+  var text = "";
+  for (var p = 1; p <= pdf.numPages; p++) {
+    var page = await pdf.getPage(p);
+    var c = await page.getTextContent();
+    var rows = {};
+    c.items.forEach(function (i) {
+      var str = i.str.replace(CTRL, "");
+      if (!str.trim()) return;
+      var y = Math.round(i.transform[5] / 4);
+      (rows[y] = rows[y] || []).push({ x: i.transform[4], s: str });
+    });
+    Object.keys(rows).map(Number).sort(function (a, b) { return b - a; }).forEach(function (y) {
+      text += rows[y].sort(function (a, b) { return a.x - b.x; }).map(function (i) { return i.s; }).join(" ") + "\n";
+    });
+  }
+  return text;
+}
+
+document.getElementById("fPdf").addEventListener("change", async function () {
+  var input = this, file = input.files && input.files[0];
+  if (!file) return;
+  say("دخوینم...");
+  try {
+    if (!window.pdfjsLib) throw new Error("no pdf.js");
+    var buf = await file.arrayBuffer();
+    putInBox(uniqueRows(parseRows(await pdfRead(buf)), {}));
+  } catch (e) {
+    say("ئەڤ PDF نەهاتە خواندن. ژمارەیان ب دەستی بنڤیسە.");
+  }
+  try { input.value = ""; } catch (e) {}
+});
+
+build();
+</script>
+
+</body></html>
