@@ -4,7 +4,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@500;700&family=Noto+Sans+Arabic:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
 <style>
-/* Layout: one narrow column. Saved lists on top, message editor, a collapsed "add numbers" box, then a ledger of orders with one WhatsApp action per row. Burgundy accent. */
+/* Layout: one narrow column. Money summary first, saved lists, message, collapsed add-box, search and grouping controls, then a ledger of orders (optionally grouped by area) with WhatsApp and SIM-call actions per row. Burgundy accent. */
 :root {
   --bg: #f8f4f5;
   --surface: #ffffff;
@@ -40,19 +40,27 @@ h1 { font-family: var(--font-display); font-size: 1.9rem; line-height: 1.25; mar
 .meta b { color: var(--fg); font-weight: 600; }
 .num { font-variant-numeric: tabular-nums; }
 
+.stats { display: grid; grid-template-columns: 1fr 1fr; border-block: 1px solid var(--line); }
+.stat { padding-block: 10px; padding-inline: 0 12px; display: flex; flex-direction: column; min-width: 0; }
+.stat.big { grid-column: 1 / -1; border-bottom: 1px solid var(--line); }
+.stat .k { color: var(--muted); font-size: 0.85rem; }
+.stat .v { font-size: 1.25rem; font-weight: 600; line-height: 1.3; overflow-wrap: anywhere; }
+.stat.big .v { font-size: 1.9rem; color: var(--accent); font-family: var(--font-mono); direction: ltr; text-align: right; }
+.stat small { color: var(--muted); font-size: 0.82rem; direction: ltr; text-align: right; }
+
 .listbar { display: flex; gap: 8px; }
-select, input[type="text"], textarea {
+select, input[type="text"], input[type="search"], textarea {
   font: inherit; color: var(--fg); background: var(--surface);
   border: 1px solid var(--line); border-radius: 6px; padding: 10px 12px; min-width: 0;
 }
 select { flex: 1; min-height: 44px; }
-input[type="text"] { width: 100%; min-height: 44px; }
+input[type="text"], input[type="search"] { width: 100%; min-height: 44px; }
 textarea { width: 100%; resize: vertical; line-height: 1.7; }
 select:focus-visible, input:focus-visible, textarea:focus-visible, a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 
 .editor { display: flex; flex-direction: column; gap: 8px; }
 .editor label, .lbl { font-weight: 600; font-size: 0.95rem; }
-#msg { min-height: 6.5rem; }
+#msg { min-height: 7.5rem; }
 
 details.add { border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
 details.add > summary {
@@ -70,28 +78,45 @@ details.add[open] > summary::after { content: "－"; }
 }
 .tab[aria-selected="true"] { color: var(--fg); border-bottom-color: var(--accent); font-weight: 600; }
 .pane { display: flex; flex-direction: column; gap: 8px; }
-.tools { display: flex; flex-wrap: wrap; gap: 8px; }
 .vh { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; pointer-events: none; }
+.tools { display: flex; flex-wrap: wrap; gap: 8px; }
 .tool {
   display: inline-flex; align-items: center; justify-content: center;
   min-height: 44px; padding-inline: 14px; border-radius: 6px; font: inherit; font-size: 0.9rem;
   background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
 }
 .tool.main { background: var(--accent); color: var(--accent-fg); border-color: var(--accent); font-weight: 600; }
-.tool:disabled { opacity: 0.5; cursor: progress; }
 .tool.warn { border-color: var(--accent); color: var(--accent); }
 .status { color: var(--muted); font-size: 0.88rem; margin: 0; min-height: 1.2em; }
 #paste { min-height: 7rem; font-family: var(--font-mono); font-size: 0.85rem; direction: ltr; text-align: left; }
 
+.controls { display: flex; flex-direction: column; gap: 10px; }
+.seg { display: flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; }
+.seg button {
+  flex: 1; min-height: 44px; font: inherit; font-size: 0.92rem; background: var(--surface); color: var(--fg);
+  border: 0; cursor: pointer;
+}
+.seg button + button { border-inline-start: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--accent-fg); font-weight: 600; }
+.chks { display: flex; flex-wrap: wrap; gap: 4px 18px; }
+.chk { display: inline-flex; align-items: center; gap: 8px; min-height: 40px; font-size: 0.9rem; cursor: pointer; }
+.chk input { width: 20px; height: 20px; accent-color: var(--accent); }
+
 .bar { display: flex; flex-direction: column; gap: 8px; }
-.bar-top { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.bar-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
 .track { height: 6px; background: var(--line); border-radius: 3px; overflow: hidden; }
 .fill { height: 100%; width: 0; background: var(--accent); transition: width 0.25s ease; }
 
 .list { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
 .empty { padding-block: 24px; color: var(--muted); text-align: center; }
+.grp {
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px; flex-wrap: wrap;
+  padding-block: 12px 8px; border-bottom: 2px solid var(--accent); font-weight: 600;
+}
+.grp .gn { direction: ltr; unicode-bidi: plaintext; }
+.grp .gs { color: var(--muted); font-weight: 400; font-size: 0.88rem; direction: ltr; unicode-bidi: plaintext; }
 .row {
-  display: grid; grid-template-columns: 2rem minmax(0, 1fr) auto; gap: 4px 12px; align-items: center;
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr); gap: 6px 12px; align-items: center;
   padding-block: 14px; border-bottom: 1px solid var(--line);
 }
 .row .n { color: var(--muted); font-size: 0.85rem; text-align: center; }
@@ -100,27 +125,26 @@ details.add[open] > summary::after { content: "－"; }
 .sub { color: var(--muted); font-size: 0.85rem; display: flex; flex-wrap: wrap; gap: 0 12px; }
 .sub span { direction: ltr; unicode-bidi: plaintext; overflow-wrap: anywhere; }
 .sub .amt { color: var(--fg); font-weight: 600; }
-.actions { display: flex; gap: 8px; align-items: center; }
-.wa {
-  display: inline-flex; align-items: center; justify-content: center; min-height: 44px; min-width: 7.5rem;
-  padding-inline: 16px; border-radius: 6px; background: var(--accent); color: var(--accent-fg);
-  font-weight: 600; font-size: 0.95rem; text-decoration: none;
+.actions { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 8px; padding-inline-start: calc(2rem + 12px); }
+.wa, .call {
+  flex: 1 1 6.5rem; display: inline-flex; align-items: center; justify-content: center; min-height: 44px;
+  padding-inline: 14px; border-radius: 6px; font-weight: 600; font-size: 0.95rem; text-decoration: none;
 }
+.wa { background: var(--accent); color: var(--accent-fg); }
 .wa:hover { filter: brightness(1.1); }
-.copy {
+.call { background: transparent; color: var(--accent); border: 1.5px solid var(--accent); }
+.mini {
+  flex: 1 1 6.5rem;
   min-height: 44px; padding-inline: 12px; border-radius: 6px; font: inherit; font-size: 0.85rem;
   background: transparent; color: var(--fg); border: 1px solid var(--line); cursor: pointer;
 }
 .row.opened { background: var(--done-bg); }
-.row.opened .wa { background: transparent; color: var(--done-fg); border: 1px solid var(--done-fg); }
+.row.opened .wa { background: transparent; color: var(--done-fg); border: 1.5px solid var(--done-fg); }
 .row.opened .n { color: var(--done-fg); }
+.row.done { opacity: 0.55; }
+.row.done .phone { text-decoration: line-through; }
 
-@media (max-width: 480px) {
-  .row { grid-template-columns: 1.6rem minmax(0, 1fr); }
-  .actions { grid-column: 1 / -1; padding-inline-start: calc(1.6rem + 12px); }
-  .wa { flex: 1; }
-  h1 { font-size: 1.6rem; }
-}
+@media (max-width: 480px) { h1 { font-size: 1.6rem; } }
 @media (prefers-reduced-motion: reduce) { .fill { transition: none; } }
 </style>
 
@@ -129,6 +153,12 @@ details.add[open] > summary::after { content: "－"; }
     <h1>نامەیێن گەهاندنێ ب وەتسئاپێ</h1>
     <p class="meta" id="listinfo"></p>
   </header>
+
+  <section class="stats" aria-label="کورتی">
+    <div class="stat big"><span class="k">کۆیێ گشتی یێ هەمی تەلەبیان</span><b class="v num" id="sumAll">0</b></div>
+    <div class="stat"><span class="k">ژمارا تەلەبیان</span><b class="v num" id="cntAll">٠</b></div>
+    <div class="stat"><span class="k">ماینە (نەگەهشتین)</span><b class="v num" id="cntLeft">٠</b><small id="sumLeft"></small></div>
+  </section>
 
   <div class="listbar">
     <select id="listSel" aria-label="لیستا هەلبژارتی"></select>
@@ -166,6 +196,18 @@ details.add[open] > summary::after { content: "－"; }
       </div>
     </div>
   </details>
+
+  <section class="controls">
+    <input type="search" id="q" autocomplete="off" placeholder="لێگەڕیان: ژمارە، شوێن یان کود" aria-label="لێگەڕیان">
+    <div class="seg" role="group" aria-label="شێوازێ نیشاندانێ">
+      <button type="button" id="vAll" aria-pressed="true">هەمی</button>
+      <button type="button" id="vArea" aria-pressed="false">ل دویڤ شوێنی</button>
+    </div>
+    <div class="chks">
+      <label class="chk"><input type="checkbox" id="showDone"> نیشاندانا گەهشتیان</label>
+      <label class="chk"><input type="checkbox" id="autoDone"> پشتی وەتسئاپێ ب خۆ بیتە «گەهشت»</label>
+    </div>
+  </section>
 
   <section class="bar" aria-live="polite">
     <div class="bar-top">
@@ -221,6 +263,7 @@ var DEFAULT_ORDERS = [
 ];
 
 var KEY_LISTS = "wa-lists-v3", KEY_CUR = "wa-cur-v3", KEY_MSG = "wa-msg-v4";
+var KEY_VIEW = "wa-view-v5", KEY_SHOWDONE = "wa-showdone-v5", KEY_AUTO = "wa-auto-v5";
 var nf = new Intl.NumberFormat("en-US");
 var msgEl = document.getElementById("msg");
 var listEl = document.getElementById("list");
@@ -228,6 +271,7 @@ var selEl = document.getElementById("listSel");
 var pasteEl = document.getElementById("paste");
 var nameEl = document.getElementById("listName");
 var statusEl = document.getElementById("pasteMsg");
+var qEl = document.getElementById("q");
 
 function load(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
 function save(k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
@@ -239,15 +283,20 @@ function normDigits(s) {
                   .replace(/[۰-۹]/g, function (d) { return "۰۱۲۳۴۵۶۷۸۹".indexOf(d); });
 }
 
-// ---------- saved lists ----------
+// ---------- state ----------
 var lists = [], cur = null;
+var view = load(KEY_VIEW) === "area" ? "area" : "all";
+var showDone = load(KEY_SHOWDONE) === "1";
+var autoDone = load(KEY_AUTO) === "1";
+var q = "";
 function newId() { return "l" + Date.now() + Math.floor(Math.random() * 1000); }
 
 try {
-  var s = JSON.parse(load(KEY_LISTS) || "null");
-  if (Array.isArray(s) && s.length) lists = s;
+  var s0 = JSON.parse(load(KEY_LISTS) || "null");
+  if (Array.isArray(s0) && s0.length) lists = s0;
 } catch (e) {}
-if (!lists.length) lists = [{ id: "default", name: "RAYAN ١٣-١٠-٢٠٢٦", orders: DEFAULT_ORDERS, opened: {} }];
+if (!lists.length) lists = [{ id: "default", name: "RAYAN ١٣-١٠-٢٠٢٦", orders: DEFAULT_ORDERS, opened: {}, done: {} }];
+lists.forEach(function (l) { l.opened = l.opened || {}; l.done = l.done || {}; });
 var curId = load(KEY_CUR);
 cur = lists.filter(function (l) { return l.id === curId; })[0] || lists[0];
 msgEl.value = load(KEY_MSG) || DEFAULT_MSG;
@@ -265,10 +314,34 @@ function renderSelect() {
   });
 }
 
+// ---------- areas ----------
+var AREA_RULES = [
+  [/b[ao]r[ou]sh?k/i, "Baroshke"],
+  [/shrta|sharta|shurta/i, "Hai Shrta"],
+  [/[jg]zma/i, "Hai Jzma"],
+  [/besre|basra/i, "Besre"],
+  [/shele/i, "Shele"],
+  [/sike/i, "Sike"]
+];
+var NOISE = { hai: 1, "7ay": 1, hayl: 1, m7ala: 1, mahala: 1, duhok: 1, nezik: 1, near: 1 };
+
+function areaOf(place) {
+  var s = String(place || "").trim();
+  if (!s) return { key: "~", name: "بێ شوێن" };
+  for (var i = 0; i < AREA_RULES.length; i++) {
+    if (AREA_RULES[i][0].test(s)) return { key: AREA_RULES[i][1].toLowerCase(), name: AREA_RULES[i][1] };
+  }
+  var t = s.toLowerCase().replace(/[^a-z0-9؀-ۿ\s]/g, " ").split(/\s+/).filter(function (w) { return w && !NOISE[w]; });
+  if (!t.length) return { key: "~", name: "بێ شوێن" };
+  var w = t[0];
+  return { key: w.replace(/u/g, "o"), name: w.charAt(0).toUpperCase() + w.slice(1) };
+}
+
 // ---------- rendering ----------
 function waUrl(phone) {
   return "https://wa.me/964" + phone.replace(/^0+/, "") + "?text=" + encodeURIComponent(msgEl.value);
 }
+function telUrl(phone) { return "tel:+964" + phone.replace(/^0+/, ""); }
 
 function subLine(o) {
   var parts = [];
@@ -278,34 +351,97 @@ function subLine(o) {
   return parts.length ? '<div class="sub">' + parts.join("") + '</div>' : "";
 }
 
+function rowEl(o, i) {
+  var li = document.createElement("li");
+  var isDone = !!cur.done[o[1]];
+  li.className = "row" + (cur.opened[o[1]] ? " opened" : "") + (isDone ? " done" : "");
+  li.dataset.key = o[1];
+  li.innerHTML =
+    '<div class="n num">' + toAr(i + 1) + '</div>' +
+    '<div class="info"><div class="phone">' + esc(o[1]) + '</div>' + subLine(o) + '</div>' +
+    '<div class="actions">' +
+      '<a class="wa" target="_blank" rel="noopener" href="' + waUrl(o[1]) + '">وەتسئاپ</a>' +
+      '<a class="call" href="' + telUrl(o[1]) + '">پەیوەندی</a>' +
+      '<button type="button" class="mini cp" data-phone="' + esc(o[1]) + '">کۆپی</button>' +
+      '<button type="button" class="mini dn">' + (isDone ? "ڤەگەڕاندن" : "گەهشت") + '</button>' +
+    '</div>';
+  return li;
+}
+
+function visible(o) {
+  if (cur.done[o[1]] && !showDone) return false;
+  if (q) {
+    var hay = normDigits((o[0] || "") + " " + o[1] + " " + (o[2] || "")).toLowerCase();
+    if (hay.indexOf(q) < 0 && hay.replace(/\s/g, "").indexOf(q.replace(/\s/g, "")) < 0) return false;
+  }
+  return true;
+}
+
+function sumOf(items) { return items.reduce(function (a, it) { return a + (it.o[3] || 0); }, 0); }
+
+function renderStats() {
+  var all = 0, left = 0, nLeft = 0;
+  cur.orders.forEach(function (o) {
+    var t = o[3] || 0;
+    all += t;
+    if (!cur.done[o[1]]) { left += t; nLeft++; }
+  });
+  document.getElementById("sumAll").textContent = nf.format(all) + " IQD";
+  document.getElementById("cntAll").textContent = toAr(cur.orders.length);
+  document.getElementById("cntLeft").textContent = toAr(nLeft);
+  document.getElementById("sumLeft").textContent = nf.format(left) + " IQD";
+}
+
 function build() {
   renderSelect();
-  document.getElementById("listinfo").innerHTML =
-    '<span>لیست: <b>' + esc(cur.name) + '</b></span><span>ژمارە: <b class="num">' + toAr(cur.orders.length) + '</b></span>';
+  document.getElementById("listinfo").innerHTML = '<span>لیست: <b>' + esc(cur.name) + '</b></span>';
   document.getElementById("total").textContent = toAr(cur.orders.length);
+  document.getElementById("vAll").setAttribute("aria-pressed", view === "all" ? "true" : "false");
+  document.getElementById("vArea").setAttribute("aria-pressed", view === "area" ? "true" : "false");
+  document.getElementById("showDone").checked = showDone;
+  document.getElementById("autoDone").checked = autoDone;
+  renderStats();
+
   listEl.innerHTML = "";
+  var items = [];
+  cur.orders.forEach(function (o, i) { if (visible(o)) items.push({ o: o, i: i }); });
+
   if (!cur.orders.length) {
     listEl.innerHTML = '<li class="empty">ژمارە نینن. ژمارەیان زێدە بکە.</li>';
+  } else if (!items.length) {
+    listEl.innerHTML = '<li class="empty">' + (q ? "چ ئەنجام نەهاتنە دیتن." : "هەمی گەهشتینە.") + '</li>';
+  } else if (view === "all") {
+    items.forEach(function (it) { listEl.appendChild(rowEl(it.o, it.i)); });
+  } else {
+    var groups = {}, order = [];
+    items.forEach(function (it) {
+      var a = areaOf(it.o[2]);
+      if (!groups[a.key]) { groups[a.key] = { name: a.name, items: [] }; order.push(a.key); }
+      groups[a.key].items.push(it);
+    });
+    order.sort(function (x, y) {
+      if (x === "~") return 1;
+      if (y === "~") return -1;
+      return groups[y].items.length - groups[x].items.length;
+    });
+    order.forEach(function (k) {
+      var g = groups[k];
+      var h = document.createElement("li");
+      h.className = "grp";
+      h.innerHTML = '<span class="gn">' + esc(g.name) + '</span><span class="gs">' +
+        g.items.length + ' · ' + nf.format(sumOf(g.items)) + ' IQD</span>';
+      listEl.appendChild(h);
+      g.items.forEach(function (it) { listEl.appendChild(rowEl(it.o, it.i)); });
+    });
   }
-  cur.orders.forEach(function (o, i) {
-    var li = document.createElement("li");
-    li.className = "row" + (cur.opened[o[1]] ? " opened" : "");
-    li.dataset.key = o[1];
-    li.innerHTML =
-      '<div class="n num">' + toAr(i + 1) + '</div>' +
-      '<div class="info"><div class="phone">' + esc(o[1]) + '</div>' + subLine(o) + '</div>' +
-      '<div class="actions">' +
-        '<a class="wa" target="_blank" rel="noopener" href="' + waUrl(o[1]) + '">وەتسئاپ</a>' +
-        '<button type="button" class="copy" data-phone="' + esc(o[1]) + '">کۆپی</button>' +
-      '</div>';
-    listEl.appendChild(li);
-  });
   progress();
 }
 
 function refreshLinks() {
-  var links = listEl.querySelectorAll(".wa");
-  cur.orders.forEach(function (o, i) { if (links[i]) links[i].href = waUrl(o[1]); });
+  listEl.querySelectorAll(".row").forEach(function (r) {
+    var a = r.querySelector(".wa");
+    if (a) a.href = waUrl(r.dataset.key);
+  });
 }
 
 function progress() {
@@ -321,8 +457,18 @@ selEl.addEventListener("change", function () {
   persist(); build();
 });
 
+qEl.addEventListener("input", function () { q = normDigits(qEl.value).trim().toLowerCase(); build(); });
+document.getElementById("vAll").addEventListener("click", function () { view = "all"; save(KEY_VIEW, view); build(); });
+document.getElementById("vArea").addEventListener("click", function () { view = "area"; save(KEY_VIEW, view); build(); });
+document.getElementById("showDone").addEventListener("change", function () { showDone = this.checked; save(KEY_SHOWDONE, showDone ? "1" : "0"); build(); });
+document.getElementById("autoDone").addEventListener("change", function () { autoDone = this.checked; save(KEY_AUTO, autoDone ? "1" : "0"); });
+
 var delArmed = null;
 var delBtn = document.getElementById("delList");
+function disarm() {
+  clearTimeout(delArmed); delArmed = null;
+  delBtn.textContent = "سڕینەوە"; delBtn.classList.remove("warn");
+}
 delBtn.addEventListener("click", function () {
   if (!delArmed) {
     delBtn.textContent = "دڵنیایی؟ دووبارە کلیک بکە";
@@ -332,25 +478,29 @@ delBtn.addEventListener("click", function () {
   }
   disarm();
   lists = lists.filter(function (l) { return l !== cur; });
-  if (!lists.length) lists = [{ id: newId(), name: "لیستا نو", orders: [], opened: {} }];
+  if (!lists.length) lists = [{ id: newId(), name: "لیستا نو", orders: [], opened: {}, done: {} }];
   cur = lists[0];
   persist(); build();
 });
-function disarm() {
-  clearTimeout(delArmed); delArmed = null;
-  delBtn.textContent = "سڕینەوە"; delBtn.classList.remove("warn");
-}
 
 listEl.addEventListener("click", function (e) {
   var row = e.target.closest(".row");
   if (!row) return;
+  var key = row.dataset.key;
   if (e.target.closest(".wa")) {
-    cur.opened[row.dataset.key] = 1;
+    cur.opened[key] = 1;
     row.classList.add("opened");
     persist(); progress();
+    if (autoDone) { cur.done[key] = 1; persist(); setTimeout(build, 400); }
     return;
   }
-  var btn = e.target.closest(".copy");
+  if (e.target.closest(".call")) return;
+  if (e.target.closest(".dn")) {
+    if (cur.done[key]) delete cur.done[key]; else cur.done[key] = 1;
+    persist(); build();
+    return;
+  }
+  var btn = e.target.closest(".cp");
   if (btn) {
     var done = function () { btn.textContent = "کۆپی بوو"; setTimeout(function () { btn.textContent = "کۆپی"; }, 1400); };
     var fallback = function () {
@@ -363,13 +513,14 @@ listEl.addEventListener("click", function (e) {
 });
 
 document.getElementById("reset").addEventListener("click", function () {
-  cur.opened = {};
+  cur.opened = {}; cur.done = {};
   persist(); build();
 });
 
 // ---------- parsing numbers ----------
 var PHONE_G = /(^|\D)(?:\+?964[\s-]?|0)?(7\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?!\d)/g;
 var PHONE_1 = /(^|\D)(?:\+?964[\s-]?|0)?(7\d{2})[\s-]?(\d{3})[\s-]?(\d{4})(?!\d)/;
+var CTRL = /[‎‏‪-‮⁦-⁩؜]/g;
 
 function firstPhone(s) {
   var m = PHONE_1.exec(normDigits(s));
@@ -380,7 +531,6 @@ function toNum(s) {
   return isNaN(n) ? null : n;
 }
 
-var CTRL = /[\u200e\u200f\u202a-\u202e\u2066-\u2069\u061c]/g;
 function parseRows(text) {
   var out = [];
   normDigits(text).replace(CTRL, "").split(/\r?\n/).forEach(function (line) {
@@ -438,7 +588,7 @@ function autoName() {
 document.getElementById("make").addEventListener("click", function () {
   var rows = uniqueRows(parseRows(pasteEl.value), {});
   if (!rows.length) { say("چ ژمارەیێن دروست نەهاتنە دیتن."); return; }
-  var l = { id: newId(), name: nameEl.value.trim() || autoName(), orders: rows, opened: {} };
+  var l = { id: newId(), name: nameEl.value.trim() || autoName(), orders: rows, opened: {}, done: {} };
   lists.push(l); cur = l;
   persist(); build();
   pasteEl.value = ""; nameEl.value = "";
